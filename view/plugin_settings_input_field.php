@@ -12,6 +12,11 @@
 //get the default values already set in the database
 $options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
 
+if ($current_settings_type == 'input') {
 ?>
 
-<input id='<?=$current_settings_field_id?>' name='<?=MakeItStatic::CONFIG_TABLE_FIELD;?>[<?=$current_settings_field_name?>]' size='40' type='text' value='<?=$options[$current_settings_field_name]?>' />
+	<input id='<?=$current_settings_field_id?>' name='<?=MakeItStatic::CONFIG_TABLE_FIELD;?>[<?=$current_settings_field_name?>]' size='<?=$current_settings_field_size?>' type='text' value='<?=$options[$current_settings_field_name]?>' />
+
+<?php } else if ($current_settings_type == 'textarea') {?>
+	<textarea cols="80" rows="10" id='<?=$current_settings_field_id?>' name='<?=MakeItStatic::CONFIG_TABLE_FIELD;?>[<?=$current_settings_field_name?>]'><?=$options[$current_settings_field_name]?></textarea>
+<?php } ?>

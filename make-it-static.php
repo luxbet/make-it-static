@@ -54,6 +54,9 @@ class MakeItStatic {
 		remove_filter('the_content', 'wptexturize');
 
 		add_filter('the_content', array($this, 'preserve_codes'), 99);
+
+		//we need an add_action for NGGallery so we can sync static servers
+		add_action('ngg_added_new_image', array($this, 'nggallery_image_upload_hook'));
 	}
 
 	/**
@@ -164,6 +167,20 @@ class MakeItStatic {
 		}
 
 		return $new_content;
+	}
+
+	public function nggallery_image_upload_hook($image_info) {
+		//get the gallery path gallerypath
+		$nggdb = new nggdb();
+		$current_gallery = $nggdb->find_gallery($image_info['galleryID']);
+		$current_filename = $image_info["filename"];
+		//now get the absolute path
+		$ws_image_path = $options = get_option('siteurl') . "/" . $current_gallery->path . "/" . $current_filename;
+
+		$static_generator = new StaticGenerator();
+		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
+		$callback_urls = $options["nggallery_callback_url"];
+		$static_generator->callback_file($ws_image_path, $callback_urls, $current_filename, 'nggallery_image');
 	}
 }
 

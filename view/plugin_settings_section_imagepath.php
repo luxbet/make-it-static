@@ -14,4 +14,4 @@
 <p>For example if your default wordpress location is http://www.localhost.com/wordpress/wp-content/gallery/</p>
 <p>you can replace it with http://www.localhost.com/gallery/ depending on your server configuration. This might be done by
 apache alias or symlink</p>
-<p><strong>Leave blank for none</strong>s</p>
+<p><strong>Leave blank for none</strong></p>

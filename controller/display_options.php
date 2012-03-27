@@ -38,14 +38,25 @@ class MakeItStaticDisplayOptions {
 			"Physical static directory"
 		);
 
+
 		$this->create_text_option(
 			"main_static_folder_path_validate",
 			"make_it_static_section_webserver",
 			"Main static web server address",
 			"display_options_section_webserver",
 			"make_it_static_ws_directory",
-			"ws_static_directory",
-			"Web server address"
+			"ws_address",
+			"Web server address (customer facing address)"
+		);
+
+		$this->create_text_option(
+			"main_static_folder_path_validate",
+			"make_it_static_section_webserver",
+			"Main static web server address",
+			"display_options_section_webserver",
+			"make_it_static_ws_url",
+			"ws_static_url",
+			"Static file URL (web reachable url)"
 		);
 
 		$this->create_text_option(
@@ -75,7 +86,19 @@ class MakeItStaticDisplayOptions {
 			"display_options_section_callback",
 			"make_it_static_callback_url",
 			"callback_url",
-			"Callback URL"
+			"Callback URL",
+			"textarea"
+		);
+
+		$this->create_text_option(
+			"main_static_folder_path_validate",
+			"make_it_static_section_nggallery_callback",
+			"NgGallery After Upload Image Callback",
+			"display_options_section_nggallery_callback",
+			"make_it_static_nggallery_callback_url",
+			"nggallery_callback_url",
+			"Next Gen Gallery Callback URL",
+			"textarea"
 		);
 
 		$this->create_text_option(
@@ -98,8 +121,9 @@ class MakeItStaticDisplayOptions {
 	 * @param $current_settings_field_id
 	 * @param $current_settings_field_name
 	 * @param $title
+	 * @param $type - input or textarea
 	 */
-	public function create_text_option($validation_callback, $section_id, $section_title, $section_description_callback, $current_settings_field_id,  $current_settings_field_name, $title) {
+	public function create_text_option($validation_callback, $section_id, $section_title, $section_description_callback, $current_settings_field_id,  $current_settings_field_name, $title, $type='input') {
 		//before we begin we need to register the settings, the option name is the table field, wordpress save it this way
 		//since we want to save all the options in json format in one field, we constant this
 		register_setting($this->settings_group_name, MakeItStatic::CONFIG_TABLE_FIELD, array($this, $validation_callback));
@@ -110,7 +134,7 @@ class MakeItStaticDisplayOptions {
 		//setup the actual input field, this is for the static file system directory in the publishing server
 		//if no input field then just display the message
 		if ($current_settings_field_id) {
-			add_settings_field($current_settings_field_id, $title, array($this,'display_input_field'), 'make_it_static_plugin', $section_id, array("field_name" => $current_settings_field_name, "field_id" => $current_settings_field_id));
+			add_settings_field($current_settings_field_id, $title, array($this,'display_input_field'), 'make_it_static_plugin', $section_id, array("field_name" => $current_settings_field_name, "field_size" => $current_settings_field_id, "field_size" => 80, "type" => $type));
 		}
 	}
 
@@ -140,10 +164,16 @@ class MakeItStaticDisplayOptions {
 		include_once($this->view_dir . "plugin_settings_section_editor_functionalities.php");
 	}
 
+	public function display_options_section_nggallery_callback() {
+		include_once($this->view_dir . "plugin_settings_section_nggallery_callback.php");
+	}
+
 	public function display_input_field($field_args) {
 
 		$current_settings_field_id = $field_args["field_id"];
 		$current_settings_field_name = $field_args["field_name"];
+		$current_settings_field_size = $field_args["field_size"];
+		$current_settings_type = $field_args["type"];
 		include($this->view_dir . "plugin_settings_input_field.php");
 	}
 

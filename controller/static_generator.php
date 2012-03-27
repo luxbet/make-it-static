@@ -129,7 +129,11 @@ class StaticGenerator {
 		}
 
 		$target_fs_filename = $static_target_directory . $filename;
+		$ws_filepath = $options["ws_static_url"] . $filename;//the web accessible path
+
+		$content_type = 'post';
 		if ($subdirectory) {
+			$content_type = 'page';
 			//redefine the fs filename as we need to insert the subdirectory
 			$target_fs_filename = $static_target_directory . $subdirectory . "/";
 			if (!is_dir($target_fs_filename)) {
@@ -137,6 +141,7 @@ class StaticGenerator {
 				mkdir($target_fs_filename);
 			}
 			$target_fs_filename .= $filename; //complete the path with filename as we want to use this of writing
+			$ws_filepath = $options["ws_static_url"] . $subdirectory . "/" . $filename;//the web accessible path
 		}
 
 
@@ -152,12 +157,31 @@ class StaticGenerator {
 			///return error code here
 			$this->register_error(MakeItStatic::ERROR_NO_PERMISSION);
 		}
+
+		$callback_urls = $options["callback_url"];
+		//now we need to do the callback!
+		//we assume that the subdirectory is different content type as this is what we use to seggregate pages and posts
+		$this->callback_file($ws_filepath, $callback_urls, $filename, $content_type);
 	}
 
 	public function get_post_language() {
 
 	}
 
+	public function callback_file($ws_filepath, $callback_urls, $filename, $content_type) {
+		if ($callback_urls) {
+			$callback_urls_array = explode(";", $callback_urls);
 
+			foreach ($callback_urls_array as $callback_url) {
+				$callback_url = trim($callback_url);
+				$curl_connection = curl_init($callback_url);
+				curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, "file_url=$ws_filepath&filename=$filename&content_type=$content_type");
+				curl_exec($curl_connection);
+				curl_close($curl_connection);
+			}
+		}
+	}
 }
 ?>

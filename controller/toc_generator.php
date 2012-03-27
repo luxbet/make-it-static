@@ -45,7 +45,7 @@ class MakeItStaticTOC {
 
 		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
 		//get the web server address first so we know what to use for the link
-		$ws_target_address = $options["ws_static_directory"];
+		$ws_target_address = $options["ws_address"];
 
 		$ws_target_address = rtrim($ws_target_address, "/ "); //trim incase we have the trailing slash
 
