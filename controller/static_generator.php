@@ -98,7 +98,7 @@ class StaticGenerator {
 		$toc_html = $toc_generator->generate_toc();
 
 		//now write the static contents
-		$this->write_to_static_directory($toc_html, 'toc.php', 'pages', false);
+		$this->write_to_static_directory($toc_html, 'toc.html', 'pages', false);
 	}
 
 	/**
