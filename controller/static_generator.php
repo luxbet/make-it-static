@@ -89,11 +89,23 @@ class StaticGenerator {
 		}
 
 		$filename .= $current_page->post_name . ".html";
-		$file_contents = $current_page->post_content;
-
-		$this->write_to_static_directory($file_contents, $filename, 'pages');
+		//append post header as h1
+		$file_contents = "<h1>" . $current_page->post_title . "</h1>";
 
 		//let's generate the TOC for the static directory
+		$toc_generator = new MakeItStaticTOC();
+
+		//if the page content has TOC (starting from that page) then display the toc instead of blank page
+		if (substr_count("[TOC]", $current_page->post_content)) {
+			$file_contents .= $toc_generator->generate_toc($page_id);
+			$nl2br  = false;
+		} else {
+			$file_contents .= $current_page->post_content;
+			$nl2br  = true;
+		}
+
+		$this->write_to_static_directory($file_contents, $filename, 'pages', $nl2br);
+
 		$toc_generator = new MakeItStaticTOC();
 		$toc_html = $toc_generator->generate_toc();
 

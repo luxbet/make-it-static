@@ -39,7 +39,7 @@ class MakeItStaticTOC {
 	 * Generates toc as html string
 	 * @return string
 	 */
-	public function generate_toc() {
+	public function generate_toc($top_parent_id = 0) {
 
 		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
 		//get the web server address first so we know what to use for the link
@@ -54,7 +54,7 @@ class MakeItStaticTOC {
 		}
 
 		//start building the TOC this is a recursive function that determines the level of each of the links
-		$this->build_toc(0, 0, 0);
+		$this->build_toc($top_parent_id, 0, 0);
 
 		$toc_html = "";
 
@@ -65,21 +65,31 @@ class MakeItStaticTOC {
 				if (!$toc_level) { //skip level 0
 					continue;
 				}
+
 				$title = $toc_row['page_data']->post_title;
 				$id = $toc_row['page_data']->ID;
-				$link = "";
+				$parent_id = $toc_row['parent_id'];
+
+				$link_body = "";
 
 				//so get the hierarchy and generate the post name here so the front controller can later tokenize the following.
 				$page_ancestors = get_ancestors($id, 'page');
 				$page_ancestors = array_reverse($page_ancestors);
 				foreach ($page_ancestors as $page_ancestor) {
 					$current_page_ancestor = get_page($page_ancestor);
-					$link .= self::DIRECTORY_SEPARATOR . $current_page_ancestor->post_name;
+					$link_body .= self::DIRECTORY_SEPARATOR . $current_page_ancestor->post_name;
 				}
 
-				$link .= self::DIRECTORY_SEPARATOR . $toc_row['page_data']->post_name . self::DIRECTORY_SEPARATOR;
+				$link_body .= self::DIRECTORY_SEPARATOR . $toc_row['page_data']->post_name . self::DIRECTORY_SEPARATOR;
 
-				$link = $ws_target_address . $toc_link_prefix . $link;
+				$link = $ws_target_address . $toc_link_prefix . $link_body;
+
+				//we need these identifier in case we want to use javascript to expand or collapse the divs
+				$current_path = str_replace(self::DIRECTORY_SEPARATOR, "_", ($toc_link_prefix . $link_body));
+				if ($toc_level == 1) {
+					$parent_path = $current_path;
+				}
+
 				ob_start();
 				include($this->view_dir . 'toc_view.php');
 				$contents = ob_get_contents();
@@ -101,7 +111,7 @@ class MakeItStaticTOC {
 	 * @return mixed
 	 */
 	private function build_toc($parent_id, $page = '', $toc_level) {
-		$this->toc_rows[] = array("level" => $toc_level, "page_data" => $page);
+		$this->toc_rows[] = array("level" => $toc_level, "page_data" => $page, "parent_id" => $parent_id);
 
 		$all_pages = get_pages( //get pages will return empty array if no child present
 			array(

@@ -11,7 +11,7 @@
 ?>
 
 <div class="toc">
-	<span class="level_<?=$toc_level?>">
+	<span class="toc level_<?=$toc_level?> path<?=$current_path?>" rel="children_of<?=$parent_path?>">
 		<a href="<?=$link?>"><?=$title?></a>
 	</span>
 </div>
