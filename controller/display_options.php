@@ -1,20 +1,9 @@
 <?php
 /**
- * User: budiartoa
- * Date: 16/03/12
- * Time: 10:47 AM
+ * @author: budiartoa
  * @copyright Copyright © Luxbet Pty Ltd. All rights reserved. http://www.luxbet.com/
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-/**
- * Created by JetBrains PhpStorm.
- * User: budiartoa
- * Date: 16/03/12
- * Time: 10:47 AM
- * To change this template use File | Settings | File Templates.
- */
-
 class MakeItStaticDisplayOptions {
 	private $view_dir;
 	private $settings_group_name;
@@ -61,22 +50,34 @@ class MakeItStaticDisplayOptions {
 
 		$this->create_text_option(
 			"main_static_folder_path_validate",
-			"make_it_static_section_img_path",
-			"Main static Image Path",
-			"display_options_section_imagepath",
-			"make_it_static_original_imagepath",
-			"original_imagepath",
-			"Original Image path"
+			"make_it_static_section_toc",
+			"Pages TOC setup",
+			"display_options_section_toc",
+			"make_it_static_toc_link_prefix",
+			"toc_link_prefix",
+			"TOC link prefix"
 		);
 
 		$this->create_text_option(
 			"main_static_folder_path_validate",
-			"make_it_static_section_img_path",
-			"Main static Image Path",
-			"display_options_section_imagepath",
-			"make_it_static_target_imagepath",
-			"target_imagepath",
-			"Target Image path"
+			"make_it_static_section_path_replacement",
+			"Path Replacements",
+			"display_options_section_path",
+			"make_it_static_original_path",
+			"original_paths",
+			"Original paths <br />(separate with semicolon ; )",
+			"textarea"
+		);
+
+		$this->create_text_option(
+			"main_static_folder_path_validate",
+			"make_it_static_section_path_replacement",
+			"Path Replacements",
+			"display_options_section_path",
+			"make_it_static_target_path",
+			"target_paths",
+			"Target paths <br />(separate with semicolon ;)",
+			"textarea"
 		);
 
 		$this->create_text_option(
@@ -138,36 +139,72 @@ class MakeItStaticDisplayOptions {
 		}
 	}
 
+	/**
+	 * displays option description
+	 */
 	public function display_options() {
 		//include the template file
 		$settings_group_name = $this->settings_group_name;
 		include_once($this->view_dir . "plugin_settings.php");
 	}
 
+	/**
+	 * directory section information
+	 */
 	public function display_options_section_directory() {
 		include_once($this->view_dir . "plugin_settings_section_directory.php");
 	}
 
+	/**
+	 * webserver section information
+	 */
 	public function display_options_section_webserver() {
 		include_once($this->view_dir . "plugin_settings_section_webserver.php");
 	}
 
-	public function display_options_section_imagepath() {
-		include_once($this->view_dir . "plugin_settings_section_imagepath.php");
+	/**
+	 * table of content section information
+	 */
+	public function display_options_section_toc() {
+		include_once($this->view_dir . "plugin_settings_section_toc.php");
 	}
 
+	/**
+	 * path replacements information
+	 */
+	public function display_options_section_path() {
+		include_once($this->view_dir . "plugin_settings_section_path.php");
+	}
+
+	/**
+	 * callbacks information
+	 */
 	public function display_options_section_callback() {
 		include_once($this->view_dir . "plugin_settings_section_callback.php");
 	}
 
+	/**
+	 * information about extra wysiwyg information
+	 */
 	public function display_options_section_editor_functionalities() {
 		include_once($this->view_dir . "plugin_settings_section_editor_functionalities.php");
 	}
 
+	/**
+	 * information on nggallery callback feature
+	 */
 	public function display_options_section_nggallery_callback() {
 		include_once($this->view_dir . "plugin_settings_section_nggallery_callback.php");
 	}
 
+	/**
+	 * Displays the input field taking into the field argument as an associative array of
+	 * field_id
+	 * field_name
+	 * field_size
+	 * type - either input or textarea
+	 * @param array $field_args
+	 */
 	public function display_input_field($field_args) {
 
 		$current_settings_field_id = $field_args["field_id"];
@@ -177,6 +214,11 @@ class MakeItStaticDisplayOptions {
 		include($this->view_dir . "plugin_settings_input_field.php");
 	}
 
+	/**
+	 * Planned input validation. empty for now
+	 * @param $input
+	 * @return mixed
+	 */
 	public function main_static_folder_path_validate($input) {
 		return $input;
 	}

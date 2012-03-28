@@ -3,9 +3,7 @@
  * TOC generator
  * Generates the TOC based on the Wordpress pages. URL is tailored for Luxbet
  *
- * User: budiartoa
- * Date: 19/03/12
- * Time: 4:54 PM
+ * @author: budiartoa
  * @copyright Copyright © Luxbet Pty Ltd. All rights reserved. http://www.luxbet.com/
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
@@ -49,6 +47,11 @@ class MakeItStaticTOC {
 
 		$ws_target_address = rtrim($ws_target_address, "/ "); //trim incase we have the trailing slash
 
+		$toc_link_prefix = "";
+		if ($options["toc_link_prefix"]) {
+			$toc_link_prefix = $options["toc_link_prefix"];
+			$toc_link_prefix = self::DIRECTORY_SEPARATOR . trim($toc_link_prefix, "/ /\n");
+		}
 
 		//start building the TOC this is a recursive function that determines the level of each of the links
 		$this->build_toc(0, 0, 0);
@@ -76,7 +79,7 @@ class MakeItStaticTOC {
 
 				$link .= self::DIRECTORY_SEPARATOR . $toc_row['page_data']->post_name . self::DIRECTORY_SEPARATOR;
 
-				$link = $ws_target_address . $link;
+				$link = $ws_target_address . $toc_link_prefix . $link;
 				ob_start();
 				include($this->view_dir . 'toc_view.php');
 				$contents = ob_get_contents();

@@ -4,12 +4,10 @@
  * This file contains mostly the HTML to display the plugin settings.
  * All variables to be displayed should be defined in the main MakeItStatic class
  *
- * User: budiartoa
- * Date: 16/03/12
- * Time: 10:16 AM
- * @copyright Copyright © Luxbet Pty Ltd. All rights reserved. http://www.luxbet.com/
+ * @author: budiartoa
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
+
 
 ?>
 

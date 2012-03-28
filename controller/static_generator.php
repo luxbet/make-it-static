@@ -1,8 +1,6 @@
 <?php
 /**
- * User: budiartoa
- * Date: 16/03/12
- * Time: 4:29 PM
+ * @author: budiartoa
  * @copyright Copyright © Luxbet Pty Ltd. All rights reserved. http://www.luxbet.com/
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
@@ -100,7 +98,7 @@ class StaticGenerator {
 		$toc_html = $toc_generator->generate_toc();
 
 		//now write the static contents
-		$this->write_to_static_directory($toc_html, 'toc.php', 'pages');
+		$this->write_to_static_directory($toc_html, 'toc.php', 'pages', false);
 	}
 
 	/**
@@ -110,22 +108,30 @@ class StaticGenerator {
 	 * @param $filename
 	 * @param $subdirectory - optional - this is to specify subdirectory after the defined static content FS
 	 */
-	public function write_to_static_directory($content, $filename, $subdirectory='') {
+	public function write_to_static_directory($content, $filename, $subdirectory='', $use_nl2br = true) {
 		//ok we need to strip the shortcodes!
 		$content = str_replace('<p>[static_code]', '', $content); //ok just to be sure we strip a variety with <p> as tiny MCE tends to add this
 		$content = str_replace('</p>[static_code]', '', $content);
 		$content = str_replace('[static_code]', '', $content);
 		$content = str_replace('[/static_code]', '', $content);
 
-		$content = nl2br($content);
+		if ($use_nl2br) {
+			$content = nl2br($content);
+		}
 		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
 		//get the set static directory first
 		$static_target_directory = $options["fs_static_directory"];
 
-		$original_image_path = $options["original_imagepath"];
-		$target_image_path = $options["target_imagepath"];
-		if ($original_image_path && $target_image_path) {
-			$content = str_replace($original_image_path, $target_image_path, $content);
+		$original_paths = explode(";", $options["original_paths"]);
+		$target_paths = explode(";", $options["target_paths"]);
+		if (count($original_paths) && (count($original_paths) == count($target_paths))) {
+			foreach ($original_paths as $key => $original_path) {
+				$target_path = $target_paths[$key];
+				if ($target_path) {
+					//only replace if we have a pair
+					$content = str_replace($original_path, $target_path, $content);
+				}
+			}
 		}
 
 		$target_fs_filename = $static_target_directory . $filename;

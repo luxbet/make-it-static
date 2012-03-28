@@ -4,11 +4,7 @@
  * This is to be included by TOC generator controller to provide the HTML of each of the rows.
  *
  * The idea is when style changes needs to be applied, we can do it here without modifying the logics too much
- *
- * User: budiartoa
- * Date: 20/03/12
- * Time: 8:16 AM
- * @copyright Copyright © Luxbet Pty Ltd. All rights reserved. http://www.luxbet.com/
+ * @author: budiartoa
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
 
