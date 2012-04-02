@@ -69,6 +69,12 @@ class StaticGenerator {
 			$filename .= ".html"; //yes prefix with html
 			$this->write_to_static_directory($current_post->post_content, $filename);
 		}
+
+		//yes also save the state for the editor, so we know which editor to kick in
+		$make_it_static_html_lock = $_POST["make_it_static_html_lock"];
+		$lock_options = get_option(MakeItStatic::CONFIG_TABLE_FIELD_HTML_LOCK);
+		$lock_options[$post_id]  = $make_it_static_html_lock;
+		update_option(MakeItStatic::CONFIG_TABLE_FIELD_HTML_LOCK, $lock_options);
 	}
 
 	/**
@@ -209,6 +215,14 @@ class StaticGenerator {
 
 	}
 
+	/**
+	 * Takes care of the callback via curl
+	 * by default it submits the file_url, filename, contetn_type
+	 * @param $ws_filepath
+	 * @param $callback_urls
+	 * @param $filename
+	 * @param $content_type
+	 */
 	public function callback_file($ws_filepath, $callback_urls, $filename, $content_type) {
 		if ($callback_urls) {
 			$callback_urls_array = explode(";", $callback_urls);
@@ -224,5 +238,6 @@ class StaticGenerator {
 			}
 		}
 	}
+
 }
 ?>

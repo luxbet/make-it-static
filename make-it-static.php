@@ -19,9 +19,11 @@ Author URI: http://www.luxbet.com
  */
 include_once ("controller/display_options.php");
 include_once ("controller/static_generator.php");
+include_once ("controller/sidebar_options.php");
 
 class MakeItStatic {
 	const CONFIG_TABLE_FIELD = "make_it_static_config";
+	const CONFIG_TABLE_FIELD_HTML_LOCK = "make_it_static_config_html_lock";
 	const CONFIG_PAGE_NAME = "make_it_static_plugin";
 	const ERROR_NO_PERMISSION = 88;
 	const ERROR_NO_HANDLE = 89;
@@ -57,6 +59,47 @@ class MakeItStatic {
 
 		//we need an add_action for NGGallery so we can sync static servers
 		add_action('ngg_added_new_image', array($this, 'nggallery_image_upload_hook'));
+
+		add_action( 'admin_init', array($this, 'add_html_lock' ));
+
+		//add_filter('the_title', array($this, 'add_html_lock' ));
+	}
+
+	/**
+	 * An option to lock HTML post since switching back to visual editor strips out a lot of HTML
+	 * This is to avoid user switching back and forth by accident
+	 */
+	public function add_html_lock($post_object) {
+
+		//we need to make sure we save the state of the editor too
+		$post_id = $post_object->ID;
+
+		//make sure we know what post is this
+		$display_sidebar_options = new MakeItStaticSidebar();
+		if ($post_id) {
+			$display_sidebar_options->set_post_id($post_id);
+		}
+
+		//trigger the filters
+		$display_sidebar_options->setup_filters($post_id);
+
+		add_meta_box(
+			'make_it_static_html_toggle',
+			__( 'Lock HTML Editor', 'make_it_static_html_toggle' ),
+			function($post_object) {
+				$post_id = $post_object->ID;
+				$display_sidebar_options = new MakeItStaticSidebar();
+
+				if ($post_id) {
+					$display_sidebar_options->set_post_id($post_id);
+				}
+
+				$display_sidebar_options->display_html_lock();
+			},
+			'post',
+			'side',
+			'high'
+		);
 	}
 
 	/**
@@ -65,6 +108,7 @@ class MakeItStatic {
 	 */
 	public static function make_it_static_install() {
 		add_option(self::CONFIG_TABLE_FIELD);
+		add_option(self::CONFIG_TABLE_FIELD_HTML_LOCK);
 	}
 
 	/**
@@ -72,7 +116,7 @@ class MakeItStatic {
 	 * remove the option entry from wordpress
 	 */
 	public static function make_it_static_uninstall() {
-		delete_option(self::CONFIG_TABLE_FIELD);
+		//delete_option(self::CONFIG_TABLE_FIELD);
 	}
 
 	/**
