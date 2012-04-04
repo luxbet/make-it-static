@@ -104,6 +104,17 @@ class MakeItStaticDisplayOptions {
 
 		$this->create_text_option(
 			"main_static_folder_path_validate",
+			"make_it_static_section_admin_meta_boxes",
+			"Disable unsupported admin meta boxes",
+			"display_options_section_meta_boxes",
+			"disable_unsupported_meta_boxes",
+			"disable_unsupported_meta_boxes",
+			"",
+			"yes_no"
+		);
+
+		$this->create_text_option(
+			"main_static_folder_path_validate",
 			"make_it_static_section_msg_editor",
 			"Additional editor functionalities",
 			"display_options_section_editor_functionalities",
@@ -212,6 +223,13 @@ class MakeItStaticDisplayOptions {
 		$current_settings_field_size = $field_args["field_size"];
 		$current_settings_type = $field_args["type"];
 		include($this->view_dir . "plugin_settings_input_field.php");
+	}
+
+	/**
+	 * callbacks information
+	 */
+	public function display_options_section_meta_boxes() {
+		return;
 	}
 
 	/**

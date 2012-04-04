@@ -16,4 +16,14 @@ if ($current_settings_type == 'input') {
 
 <?php } else if ($current_settings_type == 'textarea') {?>
 	<textarea cols="80" rows="10" id='<?=$current_settings_field_id?>' name='<?=MakeItStatic::CONFIG_TABLE_FIELD;?>[<?=$current_settings_field_name?>]'><?=$options[$current_settings_field_name]?></textarea>
-<?php } ?>
+<?php } else if ($current_settings_type == 'yes_no') {
+	$y_checked = $n_checked = "";
+	if ($options[$current_settings_field_name] == 'y') {
+		$y_checked = "checked";
+	} else {
+		$n_checked = "checked";
+	}
+?>
+	<input type="radio" name='<?=MakeItStatic::CONFIG_TABLE_FIELD;?>[<?=$current_settings_field_name?>]' value="y" <?=$y_checked?>> Yes<br>
+	<input type="radio" name='<?=MakeItStatic::CONFIG_TABLE_FIELD;?>[<?=$current_settings_field_name?>]' value="n" <?=$n_checked?>> No
+<?php }?>
