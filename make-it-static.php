@@ -73,6 +73,9 @@ class MakeItStatic {
 		add_action('wp_print_scripts', function(){
 			wp_deregister_script('autosave');
 		});
+
+		//register our quick tags
+		add_action('admin_print_footer_scripts',  array($this, 'register_quicktags'));
 	}
 
 	/**
@@ -294,6 +297,27 @@ class MakeItStatic {
 			</script>
 			";
 		}
+	}
+
+	/**
+	 * create shortcode buttons because we don't want to remember the shortcodes...
+	 */
+	public function register_quicktags() {
+		echo "
+			<script type='text/javascript'>
+				 QTags.addButton( 'static_code', 'Static Code', '[static_code]', '[/static_code]' );
+				 QTags.addButton( 'decendents_toc', 'Save as decendents TOC', '[TOC]', '' );
+
+				 jQuery(document).ready(function() {
+						jQuery('#qt_content_decendents_toc').live('click', function() {
+							alert('If [TOC] tag is inserted, the static generated content of this page will ONLY contain ' +
+								 'the table of contents for the children of the current page. ' +
+								   '\\n\\nNOTE: this only works for pages DO NOT INSERT for posts')
+				 		}
+				 	);
+				 });
+			</script>
+		";
 	}
 }
 
