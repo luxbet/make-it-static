@@ -51,7 +51,7 @@ class MakeItStaticDisplayOptions {
 		$this->create_text_option(
 			"main_static_folder_path_validate",
 			"make_it_static_section_toc",
-			"Pages TOC setup",
+			"Pages TOC (Table of Contents) setup",
 			"display_options_section_toc",
 			"make_it_static_toc_link_prefix",
 			"toc_link_prefix",
@@ -65,7 +65,7 @@ class MakeItStaticDisplayOptions {
 			"display_options_section_path",
 			"make_it_static_original_path",
 			"original_paths",
-			"Original paths <br />(separate with semicolon ; )",
+			"Original paths <br />(separate with newline)",
 			"textarea"
 		);
 
@@ -76,7 +76,7 @@ class MakeItStaticDisplayOptions {
 			"display_options_section_path",
 			"make_it_static_target_path",
 			"target_paths",
-			"Target paths <br />(separate with semicolon ;)",
+			"Target paths <br />(separate with newline;)",
 			"textarea"
 		);
 

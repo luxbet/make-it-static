@@ -163,16 +163,11 @@ class StaticGenerator {
 		//get the set static directory first
 		$static_target_directory = $options["fs_static_directory"];
 
-		$original_paths = explode(";", $options["original_paths"]);
-		$target_paths = explode(";", $options["target_paths"]);
+		$original_paths = preg_split("/[\r\n]+/", $options["original_paths"], -1, PREG_SPLIT_NO_EMPTY);
+		$target_paths = preg_split("/[\r\n]+/", $options["target_paths"], -1, PREG_SPLIT_NO_EMPTY);
 		if (count($original_paths) && (count($original_paths) == count($target_paths))) {
-			foreach ($original_paths as $key => $original_path) {
-				$target_path = $target_paths[$key];
-				if ($target_path) {
-					//only replace if we have a pair
-					$content = str_replace($original_path, $target_path, $content);
-				}
-			}
+
+			$content = str_replace($original_paths, $target_paths, $content);
 		}
 
 		$target_fs_filename = $static_target_directory . $filename;
