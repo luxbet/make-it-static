@@ -61,6 +61,7 @@ class MakeItStatic {
 		add_action('ngg_added_new_image', array($this, 'nggallery_image_upload_hook'));
 
 		add_action('admin_init', array($this, 'add_html_lock' ));
+		add_action('admin_init', array($this, 'add_html_lock' ));
 
 		//we need to hide quick edit as we don't support this
 		add_filter('post_row_actions', array($this, 'hide_quick_edit'), 10, 1);
@@ -76,6 +77,7 @@ class MakeItStatic {
 
 		//register our quick tags
 		add_action('admin_print_footer_scripts',  array($this, 'register_quicktags'));
+
 	}
 
 	/**

@@ -18,7 +18,7 @@ class MakeItStaticDisplayOptions {
 
 	public function display_options_init() {
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_directory",
 			"Main static directory setup",
 			"display_options_section_directory",
@@ -29,7 +29,7 @@ class MakeItStaticDisplayOptions {
 
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_webserver",
 			"Main static web server address",
 			"display_options_section_webserver",
@@ -39,7 +39,7 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_webserver",
 			"Main static web server address",
 			"display_options_section_webserver",
@@ -49,7 +49,7 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_toc",
 			"Pages TOC (Table of Contents) setup",
 			"display_options_section_toc",
@@ -59,7 +59,7 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_path_replacement",
 			"Path Replacements",
 			"display_options_section_path",
@@ -70,7 +70,7 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_path_replacement",
 			"Path Replacements",
 			"display_options_section_path",
@@ -81,7 +81,7 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_callback",
 			"After Creation Callback URL",
 			"display_options_section_callback",
@@ -92,7 +92,7 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_nggallery_callback",
 			"NgGallery After Upload Image Callback",
 			"display_options_section_nggallery_callback",
@@ -103,7 +103,7 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_admin_meta_boxes",
 			"Disable unsupported admin meta boxes",
 			"display_options_section_meta_boxes",
@@ -114,13 +114,24 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
-			"main_static_folder_path_validate",
+			"dummy_validation_function",
 			"make_it_static_section_msg_editor",
 			"Additional editor functionalities",
 			"display_options_section_editor_functionalities",
 			false,
 			"",
 			""
+		);
+
+		$this->create_text_option(
+			"remove_orphaned_static_files",
+			"make_it_static_section_maintenance",
+			"Remove orphaned static files",
+			"display_options_section_maintenance",
+			"remove_orphaned_static_files",
+			"remove_orphaned_static_files",
+			"Removed orphaned static files",
+			"yes_no"
 		);
 	}
 
@@ -202,6 +213,13 @@ class MakeItStaticDisplayOptions {
 	}
 
 	/**
+	 * information about extra wysiwyg information
+	 */
+	public function display_options_section_maintenance() {
+		include_once($this->view_dir . "plugin_settings_section_maintenance.php");
+	}
+
+	/**
 	 * information on nggallery callback feature
 	 */
 	public function display_options_section_nggallery_callback() {
@@ -237,7 +255,27 @@ class MakeItStaticDisplayOptions {
 	 * @param $input
 	 * @return mixed
 	 */
-	public function main_static_folder_path_validate($input) {
+	public function dummy_validation_function($input) {
+		return $input;
+	}
+
+	/**
+	 * so when this si called this will remove all the static posts that doesn't exist anymore
+	 * ALSO this will reset the options to no again
+	 * @param $input
+	 * @return mixed
+	 */
+	public function remove_orphaned_static_files($input) {
+
+		if ($input['remove_orphaned_static_files'] == 'y') {
+			//clean up stuff
+			include_once('static_generator.php');
+			$static_generator_controller = new StaticGenerator();
+			$static_generator_controller->clean_up_static_files(0, "posts", "");
+
+			$input['remove_orphaned_static_files'] = 'n'; //reset to no
+		}
+
 		return $input;
 	}
 }

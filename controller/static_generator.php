@@ -46,28 +46,13 @@ class StaticGenerator {
 	public function generate_static_post($post_id) {
 		$current_post = get_post($post_id);
 
-		//we also need to get the category to construct the filename
-		$current_post_categories = get_the_category($post_id);
+		$filename_prefix = $this->generate_post_prefix($post_id);
 
-		//now, we assume the one category restriction is on
-		$current_post_category = $current_post_categories[0];
-
-		//now get the parents
-		$current_category_path = get_category_parents($current_post_category->cat_ID, false, self::FILENAME_SEPARATOR, true);
-
-		//we need to reverse this as wordpress
-		$categories_array = explode(self::FILENAME_SEPARATOR, $current_category_path);
-
-		//unset the last element as we don't need this
-		unset($categories_array[count($categories_array) - 1]);
-
-		//now we generate the file name
-		$filename = implode(self::FILENAME_SEPARATOR, $categories_array);
-		$filename .= self::FILENAME_SEPARATOR . sanitize_title_with_dashes($current_post->post_title);
+		$filename = $filename_prefix . self::FILENAME_SEPARATOR . sanitize_title_with_dashes($current_post->post_title);
 
 		if ($filename) {
 			$filename .= ".html"; //yes prefix with html
-			$this->write_to_static_directory($current_post->post_content, $filename);
+			$this->write_to_static_directory($current_post->post_content, $filename, '', true);
 		}
 
 		//yes also save the state for the editor, so we know which editor to kick in
@@ -75,6 +60,13 @@ class StaticGenerator {
 		$lock_options = get_option(MakeItStatic::CONFIG_TABLE_FIELD_HTML_LOCK);
 		$lock_options[$post_id]  = $make_it_static_html_lock;
 		update_option(MakeItStatic::CONFIG_TABLE_FIELD_HTML_LOCK, $lock_options);
+
+		//we also need to get the category to construct the filename
+		$current_post_categories = get_the_category($post_id);
+
+		//now, we assume the one category restriction is on
+		$current_post_category = $current_post_categories[0];
+		$this->clean_up_static_files($current_post_category->cat_ID, "posts", $filename_prefix);
 	}
 
 	/**
@@ -120,11 +112,109 @@ class StaticGenerator {
 	}
 
 	/**
+	 * creates post prefix string based on the category names
+	 * @param $post_id
+	 * @return string
+	 */
+	public function generate_post_prefix($post_id) {
+		//we also need to get the category to construct the filename
+		$current_post_categories = get_the_category($post_id);
+
+		//now, we assume the one category restriction is on
+		$current_post_category = $current_post_categories[0];
+
+		//now get the parents
+		$current_category_path = get_category_parents($current_post_category->cat_ID, false, self::FILENAME_SEPARATOR, true);
+
+		//we need to reverse this as wordpress
+		$categories_array = explode(self::FILENAME_SEPARATOR, $current_category_path);
+
+		//unset the last element as we don't need this
+		unset($categories_array[count($categories_array) - 1]);
+
+		//now we generate the file name
+		$filename_prefix = implode(self::FILENAME_SEPARATOR, $categories_array);
+
+		return $filename_prefix;
+	}
+
+	/**
+	 * @param $current_parent_id
+	 * @param $type - page or post
+	 * @param $filename_prefix - prefix of the filename which is the parent directories concatenated saves us looping again
+	 * @param string $subdirectory - optional
+	 */
+	public function clean_up_static_files($current_parent_id, $type, $filename_prefix, $subdirectory = "") {
+		//need to clean up the directory after writing static contents
+		$regenerate_prefix = false;
+		if ($filename_prefix == "") {
+			//empty we must generate prefix for each of the posts, this also means that
+			//this is a maintenance run which scans all dir. This won't run per post
+			$regenerate_prefix = true;
+		}
+		$expected_filenames = array();
+		if ($type == "posts") {
+			//get all the posts
+			if ($current_parent_id) {
+				$all_posts_in_category = get_posts(array("category" => $current_parent_id, 'numberposts' => -1));
+			} else {
+				$all_posts_in_category = get_posts(array('numberposts' => -1));
+			}
+
+			foreach ($all_posts_in_category as $post_in_category) {
+				if ($regenerate_prefix) {
+					$current_filename_prefix = $this->generate_post_prefix($post_in_category->ID);
+				} else {
+					$current_filename_prefix = $filename_prefix;
+				}
+				$filename = $current_filename_prefix . self::FILENAME_SEPARATOR . sanitize_title_with_dashes($post_in_category->post_title);
+				$expected_filenames[] = $filename . ".html";
+			}
+			print_r($expected_filenames);
+
+		} else { //pages
+			//TODO: we need to handle pages too, but at this point this is not required yet
+		}
+
+		if (!count($expected_filenames)) {
+			return false; //no expected filenames
+		}
+
+		//let's get the current expected files from the
+
+		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
+		$static_target_directory = $options["fs_static_directory"];
+
+		if ($subdirectory) {
+			$static_target_directory .= $subdirectory . "/";
+		}
+
+		$directory_handle = opendir($static_target_directory);
+
+		while (false !== ($current_filename = readdir($directory_handle))) {
+
+			if ($current_filename != "." && $current_filename != ".." ) {
+
+				//if we specify prefix and it doesn't match with our current item, don't do anything
+				if ($filename_prefix && !substr_count($current_filename, $filename_prefix)) {
+					continue;
+				}
+
+				if (!in_array($current_filename, $expected_filenames)) {
+					//not in array therefore we must remove!!!
+					unlink($static_target_directory . $current_filename);
+				}
+			}
+		}
+	}
+
+	/**
 	 * writes physical file into the static directory
 	 * this function requires filename as it doesn't construct filenames
 	 * @param $content
 	 * @param $filename
 	 * @param $subdirectory - optional - this is to specify subdirectory after the defined static content FS
+	 * @param $use_nl2br - optional
 	 */
 	public function write_to_static_directory($content, $filename, $subdirectory='', $use_nl2br = true) {
 		//we need to strip the shortcodes!
@@ -204,6 +294,8 @@ class StaticGenerator {
 		//now we need to do the callback!
 		//we assume that the subdirectory is different content type as this is what we use to seggregate pages and posts
 		$this->callback_file($ws_filepath, $callback_urls, $filename, $content_type);
+
+
 	}
 
 	public function get_post_language() {
