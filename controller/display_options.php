@@ -251,7 +251,9 @@ class MakeItStaticDisplayOptions {
 	}
 
 	/**
-	 * Planned input validation. empty for now
+	 * Planned input validation. empty for now.
+	 * This is so that we have a callback for the options and later on when we want to
+	 * add proper validations we will be able to do it quite easily in here
 	 * @param $input
 	 * @return mixed
 	 */
