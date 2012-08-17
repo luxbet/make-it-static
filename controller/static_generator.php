@@ -94,11 +94,13 @@ class StaticGenerator {
 		$toc_generator = new MakeItStaticTOC();
 
 		//if the page content has TOC (starting from that page) then display the toc instead of blank page
-		if (substr_count("[TOC]", $current_page->post_content)) {
-			$file_contents .= $toc_generator->generate_toc($page_id);
+		//ok update this so that TOC can be replaced by the table of content instead of killing the entire page contents
+		$file_contents .= $current_page->post_content;
+		if (substr_count($current_page->post_content, "[TOC]")) {
+			//we actually need to convert the file contents with nl2br but we don't need this for the TOC
+			$file_contents = str_replace("[TOC]", $toc_generator->generate_toc($page_id), nl2br($file_contents));
 			$nl2br  = false;
 		} else {
-			$file_contents .= $current_page->post_content;
 			$nl2br  = true;
 		}
 
@@ -170,8 +172,6 @@ class StaticGenerator {
 				$filename = $current_filename_prefix . self::FILENAME_SEPARATOR . sanitize_title_with_dashes($post_in_category->post_title);
 				$expected_filenames[] = $filename . ".html";
 			}
-			print_r($expected_filenames);
-
 		} else { //pages
 			//TODO: we need to handle pages too, but at this point this is not required yet
 		}
