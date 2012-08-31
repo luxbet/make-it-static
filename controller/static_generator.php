@@ -10,6 +10,7 @@ include_once('toc_generator.php');
 class StaticGenerator {
 
 	const FILENAME_SEPARATOR = "#@#"; //hopefully #@#is unique enough that no one would use this as the post name, we need this later for Wagerplayer to derrive the file from the URL
+	const PATH_URL_SEPARATOR = "/";
 
 	private $error_code = false; //collection of WP_Error objects
 
@@ -67,6 +68,47 @@ class StaticGenerator {
 		//now, we assume the one category restriction is on
 		$current_post_category = $current_post_categories[0];
 		$this->clean_up_static_files($current_post_category->cat_ID, "posts", $filename_prefix);
+	}
+
+	/**
+	 * Return the category hierarchy of this post as an array
+	 * @param $post_id
+	 * @return array
+	 */
+	private function get_categories_path_array($post_id) {
+		//we also need to get the category to construct the filename
+		$current_post_categories = get_the_category($post_id);
+
+		//now, we assume the one category restriction is on
+		$current_post_category = $current_post_categories[0];
+
+		//now get the parents
+		$current_category_path = get_category_parents($current_post_category->cat_ID, false, self::FILENAME_SEPARATOR, true);
+
+		//we need to reverse this as wordpress
+		return explode(self::FILENAME_SEPARATOR, $current_category_path);
+	}
+
+	/**
+	 * Create shortlinks based on the category hierarchy of this particular post
+	 * @param $post_id
+	 * @return string
+	 */
+	public function generate_shortlink($post_id) {
+		$current_post = get_post($post_id);
+
+		$categories_array = $this->get_categories_path_array($post_id);
+		//unset the last element as we don't need this
+		unset($categories_array[count($categories_array) - 1]);
+
+		//now we generate the file name
+		$shortlink = implode(self::PATH_URL_SEPARATOR, $categories_array);
+		$shortlink .= self::PATH_URL_SEPARATOR . sanitize_title_with_dashes($current_post->post_title) . ".html";
+
+		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
+		$shortlink = $options["ws_static_url"] . $shortlink;//the web accessible path
+
+		return $shortlink;
 	}
 
 	/**
@@ -129,7 +171,7 @@ class StaticGenerator {
 		$current_category_path = get_category_parents($current_post_category->cat_ID, false, self::FILENAME_SEPARATOR, true);
 
 		//we need to reverse this as wordpress
-		$categories_array = explode(self::FILENAME_SEPARATOR, $current_category_path);
+		$categories_array = $this->get_categories_path_array($post_id);
 
 		//unset the last element as we don't need this
 		unset($categories_array[count($categories_array) - 1]);
@@ -193,7 +235,7 @@ class StaticGenerator {
 
 		while (false !== ($current_filename = readdir($directory_handle))) {
 
-			if ($current_filename != "." && $current_filename != ".." ) {
+			if ($current_filename != "." && $current_filename != ".." && !is_dir($static_target_directory . $current_filename)) {
 
 				//if we specify prefix and it doesn't match with our current item, don't do anything
 				if ($filename_prefix && !substr_count($current_filename, $filename_prefix)) {

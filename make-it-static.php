@@ -61,11 +61,18 @@ class MakeItStatic {
 		add_action('ngg_added_new_image', array($this, 'nggallery_image_upload_hook'));
 
 		add_action('admin_init', array($this, 'add_html_lock' ));
-		add_action('admin_init', array($this, 'add_html_lock' ));
 
 		//we need to hide quick edit as we don't support this
 		add_filter('post_row_actions', array($this, 'hide_quick_edit'), 10, 1);
 		add_filter('page_row_actions', array($this, 'hide_quick_edit'), 10, 1);
+
+		//apply the filter for shortlinks to help the user understand where they should look
+		//only if using categories as path is enabled
+		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
+		$categories_as_path = $options["categories_as_path"];
+		if ($categories_as_path == 'y') {
+			add_filter('get_sample_permalink_html', array($this, 'modify_shortlinks'), 11, 4);
+		}
 
 		//remove meta boxes as we don't need this
 		add_action('admin_head', array($this, 'remove_unsupported_meta_boxes'));
@@ -115,6 +122,18 @@ class MakeItStatic {
 			'side',
 			'high'
 		);
+	}
+
+	/**
+	 * Modifies the displayed shortlinks so it now shows the expected make-it-static display
+	 * @param $return
+	 * @param $id
+	 * @return string
+	 */
+	public function modify_shortlinks($return, $id) {
+		$static_generator = new StaticGenerator();
+		$shortlink = $static_generator->generate_shortlink($id);
+		return "<a href='$shortlink' target='new_wordpress_preview_window'>$shortlink</a>";
 	}
 
 	/**
@@ -288,16 +307,6 @@ class MakeItStatic {
 				remove_meta_box($meta_box_name,'post','advanced');
 				remove_meta_box($meta_box_name,'page','advanced');
 			}
-
-			//part of the section that we want to remove is also the permalinks as this doesn't apply to static contents
-			//the idea is the presentation of url paths is up to the user of this static content
-			echo "
-			<script type='text/javascript'>
-				jQuery(document).ready(function() {
-					jQuery('#edit-slug-box').hide();
-				});
-			</script>
-			";
 		}
 	}
 

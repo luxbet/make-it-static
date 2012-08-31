@@ -114,6 +114,17 @@ class MakeItStaticDisplayOptions {
 		);
 
 		$this->create_text_option(
+ 			"dummy_validation_function",
+			"make_it_static_section_permalinks",
+			"Use categories as permalinks",
+			"display_options_section_meta_boxes",
+			"categories_as_path",
+			"categories_as_path",
+			"",
+			"yes_no"
+		);
+
+		$this->create_text_option(
 			"dummy_validation_function",
 			"make_it_static_section_msg_editor",
 			"Additional editor functionalities",
