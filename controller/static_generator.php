@@ -85,6 +85,11 @@ class StaticGenerator {
 		//now get the parents
 		$current_category_path = get_category_parents($current_post_category->cat_ID, false, self::FILENAME_SEPARATOR, true);
 
+		//make sure we return false if this is an error object
+		if (is_wp_error($current_category_path)) {
+			return false;
+		}
+
 		//we need to reverse this as wordpress
 		return explode(self::FILENAME_SEPARATOR, $current_category_path);
 	}
@@ -98,6 +103,11 @@ class StaticGenerator {
 		$current_post = get_post($post_id);
 
 		$categories_array = $this->get_categories_path_array($post_id);
+
+		if (!$categories_array) {
+			return ''; //return empty string if no array yet
+		}
+
 		//unset the last element as we don't need this
 		unset($categories_array[count($categories_array) - 1]);
 
@@ -106,7 +116,7 @@ class StaticGenerator {
 		$shortlink .= self::PATH_URL_SEPARATOR . sanitize_title_with_dashes($current_post->post_title) . ".html";
 
 		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
-		$shortlink = $options["ws_static_url"] . $shortlink;//the web accessible path
+		$shortlink = $options["ws_address"] . $shortlink;//the web accessible path
 
 		return $shortlink;
 	}
@@ -172,6 +182,10 @@ class StaticGenerator {
 
 		//we need to reverse this as wordpress
 		$categories_array = $this->get_categories_path_array($post_id);
+
+		if (!$categories_array) {
+			return ''; //empty if there is no categories yet
+		}
 
 		//unset the last element as we don't need this
 		unset($categories_array[count($categories_array) - 1]);
