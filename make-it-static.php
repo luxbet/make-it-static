@@ -31,6 +31,16 @@ class MakeItStatic {
 	public $error_code = "";
 
 	/**
+	 * @var string - variable to save the prefix before saving, this is required
+	 */
+	private $pre_saved_post_prefix = "";
+
+	/**
+	 * @var int - variable to save the category of the post before saving
+	 */
+	private $pre_saved_post_category = 0;
+
+	/**
 	 * instantiate all the hooks
 	 * not much logic here just the wordpress events hook.
 	 */
@@ -43,11 +53,17 @@ class MakeItStatic {
 			add_action('admin_menu', array($this, 'generate_admin_menu'));
 		}
 
-		//add_action('admin_init', 'test_dbg');
 		//now, we have to tell Wordpress to actually static this properly
 		//add the hook to post save!
 		add_action('publish_post', array($this, 'convert_post_to_static'));
 		add_action('publish_page', array($this, 'convert_page_to_static'));
+
+		//add filter hook for before saving the page, we need to delete the static files in case use changed the category
+		//wp_insert_post_data
+		add_filter('wp_insert_post_data', array($this, 'save_current_post_data'), '99', 2);
+
+		//to clean up previous category after inserion
+		add_action('wp_insert_post', array($this, 'clean_previous_category'));
 
 		//append the after-save messages list with our own error messages
 		add_filter('post_updated_messages', array($this, 'custom_message_filter'));
@@ -85,6 +101,52 @@ class MakeItStatic {
 		//register our quick tags
 		add_action('admin_print_footer_scripts',  array($this, 'register_quicktags'));
 
+		//add filter to save our html lock
+		add_filter('wp_insert_post_data', array($this, 'save_html_lock_state'), '99', 2);
+	}
+
+	/**
+	 * Saves the current's post prefix and category id before any database update
+	 * This is used to clean up the current directory, in case the post is trashed or moved to another directory
+	 * @param $data
+	 * @param $post_arr
+	 * @return mixed
+	 */
+	public function save_current_post_data($data, $post_arr) {
+		$static_generator = new StaticGenerator();
+
+		$this->pre_saved_post_prefix = $static_generator->generate_post_prefix($post_arr["ID"]);
+
+		//we also need to get the category to construct the filename
+		$current_post_categories = get_the_category($post_arr["ID"]);
+
+		//now, we assume the one category restriction is on
+		$current_post_category = $current_post_categories[0];
+
+		$this->pre_saved_post_category = $current_post_category->cat_ID;
+
+		return $data;
+	}
+
+	/**
+	 * Clean up the previous category based on the last saved post prefix and post category
+	 */
+	public function clean_previous_category() {
+		//now clean up the category
+		$static_generator = new StaticGenerator();
+		$static_generator->clean_up_static_post_category(false, $this->pre_saved_post_prefix, $this->pre_saved_post_category);
+	}
+
+	/**
+	 * Save the locked stathe of the html editor
+	 * @param $data
+	 * @param $postarr
+	 * @return mixed
+	 */
+	public function save_html_lock_state($data, $postarr) {
+		$static_generator = new StaticGenerator();
+		$static_generator->save_html_lock_state($postarr['ID']);
+		return $data;
 	}
 
 	/**

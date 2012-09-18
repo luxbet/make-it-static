@@ -57,17 +57,49 @@ class StaticGenerator {
 		}
 
 		//yes also save the state for the editor, so we know which editor to kick in
+		$this->save_html_lock_state($post_id);
+
+		//we also need to get the category to construct the filename
+		$this->clean_up_static_post_category($post_id, $filename_prefix);
+	}
+
+	/**
+	 * This will try to clean up the category where the static post resides
+	 * in effect cleaning orphaned files for the category
+	 * Either put in just the post_id or specify filename prefix and target category id
+	 * @param int $post_id - optional
+	 * @param string $filename_prefix - optional
+	 * @param int $target_category_id - optional - to force the category id to clean
+	 */
+	public function clean_up_static_post_category($post_id = false, $filename_prefix = false, $target_category_id = false) {
+
+		//if no filename prefix is supplied then we need to search it from the post ID
+		if (!$filename_prefix) {
+			$filename_prefix = $this->generate_post_prefix($post_id);
+		}
+
+		if (!$target_category_id) {
+			//we also need to get the category to construct the filename
+			$current_post_categories = get_the_category($post_id);
+
+			//now, we assume the one category restriction is on
+			$current_post_category = $current_post_categories[0];
+
+			$target_category_id = $current_post_category->cat_ID;
+		}
+
+		$this->clean_up_static_files($target_category_id, "posts", $filename_prefix);
+	}
+
+	/**
+	 * Save the HTML editor lock for the current post id
+	 * @param $post_id
+	 */
+	public function save_html_lock_state($post_id) {
 		$make_it_static_html_lock = $_POST["make_it_static_html_lock"];
 		$lock_options = get_option(MakeItStatic::CONFIG_TABLE_FIELD_HTML_LOCK);
 		$lock_options[$post_id]  = $make_it_static_html_lock;
 		update_option(MakeItStatic::CONFIG_TABLE_FIELD_HTML_LOCK, $lock_options);
-
-		//we also need to get the category to construct the filename
-		$current_post_categories = get_the_category($post_id);
-
-		//now, we assume the one category restriction is on
-		$current_post_category = $current_post_categories[0];
-		$this->clean_up_static_files($current_post_category->cat_ID, "posts", $filename_prefix);
 	}
 
 	/**
@@ -202,7 +234,7 @@ class StaticGenerator {
 	 * @param $filename_prefix - prefix of the filename which is the parent directories concatenated saves us looping again
 	 * @param string $subdirectory - optional
 	 */
-	public function clean_up_static_files($current_parent_id, $type, $filename_prefix, $subdirectory = "") {
+	public function clean_up_static_files($current_parent_id, $type, $filename_prefix = "", $subdirectory = "") {
 		//need to clean up the directory after writing static contents
 		$regenerate_prefix = false;
 		if ($filename_prefix == "") {
@@ -221,22 +253,20 @@ class StaticGenerator {
 
 			foreach ($all_posts_in_category as $post_in_category) {
 				if ($regenerate_prefix) {
-					$current_filename_prefix = $this->generate_post_prefix($post_in_category->ID);
-				} else {
-					$current_filename_prefix = $filename_prefix;
+					$filename_prefix = $this->generate_post_prefix($post_in_category->ID);
 				}
-				$filename = $current_filename_prefix . self::FILENAME_SEPARATOR . sanitize_title_with_dashes($post_in_category->post_title);
+
+				$filename = $filename_prefix . self::FILENAME_SEPARATOR . sanitize_title_with_dashes($post_in_category->post_title);
 				$expected_filenames[] = $filename . ".html";
 			}
 		} else { //pages
 			//TODO: we need to handle pages too, but at this point this is not required yet
 		}
 
-		if (!count($expected_filenames)) {
-			return false; //no expected filenames
+		//if filename prefix does not exist do not proceed, we might end up deleting the whole thing
+		if (!$filename_prefix) {
+			return false;
 		}
-
-		//let's get the current expected files from the
 
 		$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
 		$static_target_directory = $options["fs_static_directory"];
@@ -252,10 +282,10 @@ class StaticGenerator {
 			if ($current_filename != "." && $current_filename != ".." && !is_dir($static_target_directory . $current_filename)) {
 
 				//if we specify prefix and it doesn't match with our current item, don't do anything
-				if ($filename_prefix && !substr_count($current_filename, $filename_prefix)) {
+				//alternatively if filename prefix does not exist, don't bother trying to delete as we might delete other things this way
+				if (!$filename_prefix || !substr_count($current_filename, $filename_prefix)) {
 					continue;
 				}
-
 				if (!in_array($current_filename, $expected_filenames)) {
 					//not in array therefore we must remove!!!
 					unlink($static_target_directory . $current_filename);
