@@ -3,7 +3,7 @@
 Plugin Name: make-it-static.php
 Plugin URI: http://www.luxbet.com/
 Description: A plugin to disperse blog posts as static contents to different servers
-Version: 1.0
+Version: 1.1
 Author: Arvy Budiarto
 Author URI: http://www.luxbet.com
 */
@@ -103,6 +103,12 @@ class MakeItStatic {
 
 		//add filter to save our html lock
 		add_filter('wp_insert_post_data', array($this, 'save_html_lock_state'), '99', 2);
+
+		//to be save, default editor should be html
+		add_filter('wp_default_editor', function() {
+			return 'html';
+		});
+
 	}
 
 	/**
