@@ -144,6 +144,27 @@ class MakeItStaticDisplayOptions {
 			"Removed orphaned static files",
 			"yes_no"
 		);
+
+		//add the option to send email per publish
+		$this->create_text_option(
+			"dummy_validation_function",
+			"make_it_static_section_reviewer",
+			"Enable publishing review",
+			"no_description",
+			"reviewer_enabled",
+			"reviewer_enabled",
+			"When enabled each time a post is published the static file will be emailed to this address",
+			"yes_no"
+		);
+		$this->create_text_option(
+			"dummy_validation_function",
+			"make_it_static_section_reviewer_email",
+			"Set reviewer email",
+			"no_description",
+			"reviewer_email",
+			"reviewer_email",
+			"Enter reviewer email"
+		);
 	}
 
 	/**
@@ -290,5 +311,9 @@ class MakeItStaticDisplayOptions {
 		}
 
 		return $input;
+	}
+
+	public function no_description() {
+		return "";
 	}
 }

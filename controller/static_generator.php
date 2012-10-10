@@ -374,14 +374,21 @@ class StaticGenerator {
 		if (fwrite($file_handle, $content) === FALSE) {
 			///return error code here
 			$this->register_error(MakeItStatic::ERROR_NO_PERMISSION);
+		} else {
+			//should we send email to reviewer? let's check the options
+			//use $target_fs_filename
+			$options = get_option(MakeItStatic::CONFIG_TABLE_FIELD);
+
+			if ($options["reviewer_enabled"] == "y" && $options["reviewer_email"]) {
+				$attachments = array($target_fs_filename);
+				wp_mail($options["reviewer_email"], "New Contents Published", "The newly published content is in the attachment", array(), $attachments);
+			}
 		}
 
 		$callback_urls = $options["callback_url"];
 		//now we need to do the callback!
-		//we assume that the subdirectory is different content type as this is what we use to seggregate pages and posts
+		//we assume that the subdirectory is different content type as this is what we use to segregate pages and posts
 		$this->callback_file($ws_filepath, $callback_urls, $filename, $content_type);
-
-
 	}
 
 	public function get_post_language() {
